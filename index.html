@@ -471,6 +471,12 @@ const CONFIG = {
   PRIZE_POOL_BASE: 620,     // قاعدة تقديرية لمجمع الجائزة المعروض (تجميلي فقط)
   PAYOUT_RATIO: 0.80        // نسبة الـ 80% Derash المعلنة في القواعد
 };
+  
+// حالة اللاعب العامة (تُملأ بعد الاتصال بالخادم)
+let state = {
+  playerId: null,
+  balance: 0
+};
 // تحديث نص القاعدة في شاشة الدخول تلقائيًا من CONFIG (بدل رقم ثابت قد لا يطابق العدد الفعلي)
 document.getElementById("ruleSlotsTotal").textContent = CONFIG.SLOTS_TOTAL;
 document.getElementById("ruleMaxCartelas").textContent = CONFIG.MAX_CARTELAS;
@@ -1186,6 +1192,65 @@ const App = (function(){
 
   return { enterGame, autoAssign, clearSlots };
 })();
+</script>
+<script>
+const API_BASE = "https://royal-bingo-server.onrender.com";
+
+// استخدام state الموجود أو إنشاؤه إذا لم يكن موجودًا
+window.state = window.state || { playerId: null, balance: 0 };
+
+function updateTopBar() {
+  const balanceEl = document.getElementById('topBalance');
+  if (balanceEl && window.state.playerId) {
+    balanceEl.textContent = window.state.balance.toFixed(0);
+  }
+}
+
+async function initPlayer() {
+  let telegram_id, username;
+
+  if (window.Telegram && window.Telegram.WebApp) {
+    const user = window.Telegram.WebApp.initDataUnsafe?.user;
+    if (user) {
+      telegram_id = String(user.id);
+      username = user.username || user.first_name || 'Player';
+    }
+  }
+
+  if (!telegram_id) {
+    telegram_id = 'test_user_1';
+    username = 'Tester';
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/api/players`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ telegram_id, username })
+    });
+    const player = await res.json();
+    window.state.playerId = player.id;
+    window.state.balance = player.balance;
+    updateTopBar();
+    console.log('Player initialized:', player);
+  } catch (error) {
+    console.error('Failed to initialize player:', error);
+  }
+}
+
+async function refreshBalance() {
+  if (!window.state.playerId) return;
+  try {
+    const res = await fetch(`${API_BASE}/api/balance/${window.state.playerId}`);
+    const data = await res.json();
+    window.state.balance = data.balance;
+    const balEl = document.getElementById('balanceAmount');
+    if (balEl) balEl.textContent = data.balance.toFixed(2);
+    updateTopBar();
+  } catch (e) {
+    console.error('Balance fetch error', e);
+  }
+}
 </script>
 </body>
 </html>
