@@ -1251,6 +1251,117 @@ async function refreshBalance() {
     console.error('Balance fetch error', e);
   }
 }
+ // ========== دوال الإيداع والسحب ==========
+
+function showDepositForm() {
+  document.getElementById('walletFormContainer').innerHTML = `
+    <h4 style="color:#f0a92b; margin-bottom:8px;">💸 ገንዘብ ማስገባት (Telebirr)</h4>
+    <input type="number" id="depositAmount" placeholder="መጠን (ETB)" min="10" style="width:100%; padding:8px; margin-bottom:8px; background:#1a0509; border:1px solid #5a1424; color:#f5e9dd; border-radius:6px;" />
+    <input type="text" id="depositTransactionId" placeholder="የግብይት ቁጥር (Transaction ID)" style="width:100%; padding:8px; margin-bottom:8px; background:#1a0509; border:1px solid #5a1424; color:#f5e9dd; border-radius:6px;" />
+    <button onclick="submitDeposit()" style="width:100%; padding:10px; background:#f0a92b; border:none; border-radius:8px; font-weight:bold; color:#2b0a12;">አረጋግጥና አስገባ</button>
+    <p style="font-size:10px; color:#8a6b6b; margin-top:6px;">* ከTelebirr የግብይት ቁጥርዎን ያስገቡ</p>
+  `;
+}
+
+function showWithdrawForm() {
+  document.getElementById('walletFormContainer').innerHTML = `
+    <h4 style="color:#f0a92b; margin-bottom:8px;">💵 ገንዘብ ማውጣት (በእጅ)</h4>
+    <input type="number" id="withdrawAmount" placeholder="መጠን (ETB)" min="10" style="width:100%; padding:8px; margin-bottom:8px; background:#1a0509; border:1px solid #5a1424; color:#f5e9dd; border-radius:6px;" />
+    <select id="withdrawMethod" style="width:100%; padding:8px; margin-bottom:8px; background:#1a0509; border:1px solid #5a1424; color:#f5e9dd; border-radius:6px;">
+      <option value="Telebirr">Telebirr</option>
+      <option value="CBE Birr">CBE Birr</option>
+      <option value="Other">ሌላ</option>
+    </select>
+    <input type="text" id="withdrawPhone" placeholder="ስልክ ቁጥር" style="width:100%; padding:8px; margin-bottom:8px; background:#1a0509; border:1px solid #5a1424; color:#f5e9dd; border-radius:6px;" />
+    <button onclick="submitWithdraw()" style="width:100%; padding:10px; background:#e0507a; border:none; border-radius:8px; font-weight:bold; color:#fff;">የመውጣት ጥያቄ ላክ</button>
+    <p style="font-size:10px; color:#8a6b6b; margin-top:6px;">* ጥያቄው በአስተዳዳሪ ይገመገማል</p>
+  `;
+}
+
+async function submitDeposit() {
+  const amount = parseFloat(document.getElementById('depositAmount').value);
+  const transaction_id = document.getElementById('depositTransactionId').value.trim();
+  if (!amount || amount < 10) {
+    alert('እባክዎ ትክክለኛ መጠን ያስገቡ (ዝቅተኛ 10 ETB)');
+    return;
+  }
+  if (!transaction_id) {
+    alert('እባክዎ የግብይት ቁጥር ያስገቡ');
+    return;
+  }
+  try {
+    const res = await fetch(`${API_BASE}/api/deposits`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ player_id: window.state.playerId, amount, transaction_id })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      alert('✅ ገንዘቡ በተሳካ ሁኔታ ገብቷል!');
+      refreshBalance();
+      loadTransactions();
+    } else {
+      alert('❌ ገንዘብ ማስገባት አልተሳካም: ' + data.error);
+    }
+  } catch (e) {
+    alert('❌ ከአገልጋይ ጋር የግንኙነት ችግር');
+  }
+}
+
+async function submitWithdraw() {
+  const amount = parseFloat(document.getElementById('withdrawAmount').value);
+  const method = document.getElementById('withdrawMethod').value;
+  const phone = document.getElementById('withdrawPhone').value.trim();
+  if (!amount || amount < 10) {
+    alert('እባክዎ ትክክለኛ መጠን ያስገቡ (ዝቅተኛ 10 ETB)');
+    return;
+  }
+  if (!phone) {
+    alert('እባክዎ ስልክ ቁጥር ያስገቡ');
+    return;
+  }
+  try {
+    const res = await fetch(`${API_BASE}/api/withdrawals`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ player_id: window.state.playerId, amount, method, phone_number: phone })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      alert('✅ የመውጣት ጥያቄዎ ተልኳል፣ በቅርቡ ይገመገማል');
+      refreshBalance();
+      loadTransactions();
+    } else {
+      alert('❌ ጥያቄው አልተሳካም: ' + data.error);
+    }
+  } catch (e) {
+    alert('❌ ከአገልጋይ ጋር የግንኙነት ችግር');
+  }
+}
+
+async function loadTransactions() {
+  if (!window.state.playerId) return;
+  try {
+    const res = await fetch(`${API_BASE}/api/transactions/${window.state.playerId}`);
+    const transactions = await res.json();
+    const list = document.getElementById('transactionsList');
+    if (transactions.length === 0) {
+      list.innerHTML = '<div style="color:#8a6b6b;">ምንም ግብይት የለም</div>';
+      return;
+    }
+    list.innerHTML = transactions.map(t => {
+      const sign = t.amount >= 0 ? '+' : '';
+      return `
+        <div style="border-bottom:1px solid #3d0f1a; padding:4px 0; display:flex; justify-content:space-between;">
+          <span>${t.type}</span>
+          <span style="color:${t.status === 'completed' ? '#5dcaa5' : t.status === 'pending' ? 'orange' : '#e24b4a'}">${sign}${t.amount.toFixed(2)} ETB (${t.status})</span>
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    console.error('የግብይት ታሪክ ስህተት', e);
+  }
+  }
 </script>
 </body>
 </html>
