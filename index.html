@@ -610,6 +610,18 @@ const CONFIG = {
 const TG = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
 const INIT_DATA = (TG && TG.initData) ? TG.initData : "";
 const REAL_MONEY_MODE = !!(INIT_DATA && CONFIG.API_BASE_URL);
+
+// 🔎 نعرّض هذه المتغيرات على window فقط لأغراض التصحيح عبر Eruda/Console —
+// بدون هذا، أي console.log(REAL_MONEY_MODE) من خارج هذا السكربت يعطي
+// "ReferenceError" حتى لو كانت اللعبة تعمل بشكل صحيح تمامًا من الداخل،
+// لأن كل شيء هنا محاط بـ try{} (راجع أعلى الملف) فيصبح النطاق محليًا
+window.DEBUG = {
+  get REAL_MONEY_MODE(){ return REAL_MONEY_MODE; },
+  get INIT_DATA_PRESENT(){ return !!INIT_DATA; },
+  get API_BASE_URL(){ return CONFIG.API_BASE_URL; },
+  get TELEGRAM_SDK_LOADED(){ return !!TG; }
+};
+
 if(REAL_MONEY_MODE){
   document.addEventListener("DOMContentLoaded", ()=>{
     const btn = document.getElementById("walletBtn");
