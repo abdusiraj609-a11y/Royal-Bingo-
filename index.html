@@ -372,7 +372,7 @@
         <div class="k">ይላኩ ወደ (Send To)</div>
         <div class="acc-row"><span>ዘዴ (Method)</span><b>Telebirr</b></div>
         <div class="acc-row"><span>ስም (Name)</span><b id="depAccName">Abdurahman</b></div>
-        <div class="acc-row"><span>ቁጥር (Number)</span><b id="depAccNumber">0930729486</b></div>
+        <div class="acc-row"><span>ቁጥር (Number)</span><b id="depAccNumber">0993946560</b></div>
       </div>
 
       <label class="form-label">የላኩት መጠን (Amount) — ETB</label>
@@ -1403,6 +1403,14 @@ window.App = (function(){
       document.getElementById("slotsBalance").textContent = state.realBalance;
       if(res.closes_in != null && res.closes_in <= 5 && res.closes_in > 0) Sound.countdownTick();
 
+      // 🔧 إعادة مزامنة كرتيلاتك من السيرفر (مصدر الحقيقة الوحيد) — يحل مشكلة
+      // اختفاء الكرتيلات عند إغلاق اللعبة وإعادة فتحها في نفس الجولة، لأن
+      // state.realGrids المحلية تُصفَّر عند كل تحميل صفحة جديد بينما السيرفر
+      // يتذكر كرتيلاتك الحقيقية طالما الجولة نفسها لم تنتهِ بعد
+      if(res.your_entries && res.your_entries.length){
+        state.realGrids = res.your_entries.map(e => ({ grid: e.grid, is_winner: e.is_winner, payout: e.payout }));
+      }
+
       if(res.status !== "collecting"){
         clearInterval(state.closesTimerId);
         startRoundReal(res.round_id);
@@ -1516,9 +1524,28 @@ window.App = (function(){
       const called = res.called_balls;
 
       if(called.length > state.lastCalledCountReal){
+        // 🔧 لو الفارق أكبر من كرة واحدة (رجعت لنفس الجولة بعد إغلاق اللعبة)،
+        // لازم نُعلّم كل الكرات اللي فاتتنا دفعة واحدة، مش فقط آخر كرة
+        const catchUpBalls = called.slice(state.lastCalledCountReal);
         const newBall = called[called.length-1];
         state.lastCalledCountReal = called.length;
         matrixHits = new Set(called);
+
+        const prevCurrent = document.querySelector(".matrix-cell.current");
+        if(prevCurrent){ prevCurrent.classList.remove("current"); prevCurrent.classList.add("hit"); }
+
+        catchUpBalls.forEach((n, idx) => {
+          const mxCell = document.getElementById("mx-"+n);
+          if(!mxCell) return;
+          if(idx === catchUpBalls.length - 1) mxCell.classList.add("current");
+          else mxCell.classList.add("hit");
+        });
+
+        document.querySelectorAll(".bingo-cell").forEach(cell=>{
+          if(matrixHits.has(Number(cell.dataset.val)) && !cell.classList.contains("marked")){
+            cell.classList.add("marked");
+          }
+        });
 
         const col = COLUMNS.find(c => newBall >= COL_RANGES[c][0] && newBall <= COL_RANGES[c][1]);
         document.getElementById("drawnBall").textContent = newBall;
@@ -1526,11 +1553,6 @@ window.App = (function(){
         badge.textContent = col; badge.style.background = COL_STYLES[col].bg; badge.style.color = COL_STYLES[col].fg;
         document.getElementById("drawnCol").textContent = `Column ${col} · #${newBall}`;
         document.getElementById("calledCount").textContent = called.length;
-
-        const prevCurrent = document.querySelector(".matrix-cell.current");
-        if(prevCurrent){ prevCurrent.classList.remove("current"); prevCurrent.classList.add("hit"); }
-        const mxCell = document.getElementById("mx-"+newBall);
-        if(mxCell) mxCell.classList.add("current");
 
         const strip = document.getElementById("historyStrip");
         const prevBalls = called.slice(0,-1).slice(-6);
@@ -1540,14 +1562,11 @@ window.App = (function(){
           return `<div class="history-ball"><span class="hcol" style="background:${st.bg};color:${st.fg}">${c}</span><span class="hnum">${n}</span></div>`;
         }).join("");
 
-        const playedReal = Sound.playBallRecording(newBall);
-        if(!playedReal) Sound.speakBallAmharic(newBall, col);
-
-        document.querySelectorAll(".bingo-cell").forEach(cell=>{
-          if(String(cell.dataset.val) === String(newBall) && !cell.classList.contains("marked")){
-            cell.classList.add("marked");
-          }
-        });
+        // نُصدر صوت الكرة الأخيرة فقط (مش كل الكرات التاريخية دفعة وحدة عند اللحاق بالركب)
+        if(catchUpBalls.length === 1){
+          const playedReal = Sound.playBallRecording(newBall);
+          if(!playedReal) Sound.speakBallAmharic(newBall, col);
+        }
       }
 
       if(res.status === "finished"){
