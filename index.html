@@ -708,6 +708,11 @@ const CONFIG = {
 const TG = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
 const INIT_DATA = (TG && TG.initData) ? TG.initData : "";
 const REAL_MONEY_MODE = !!(INIT_DATA && CONFIG.API_BASE_URL);
+// اسم اللاعب الحقيقي للعرض فقط (initDataUnsafe غير موقّع، لذا لا يُستخدم
+// أبدًا لأي قرار أمني — فقط لعرض اسمه في الواجهة، وهذا استخدام آمن تمامًا)
+const TG_DISPLAY_NAME = (TG && TG.initDataUnsafe && TG.initDataUnsafe.user)
+  ? (TG.initDataUnsafe.user.username || TG.initDataUnsafe.user.first_name || "PLAYER")
+  : "PLAYER";
 
 // 🔎 نعرّض هذه المتغيرات على window فقط لأغراض التصحيح عبر Eruda/Console —
 // بدون هذا، أي console.log(REAL_MONEY_MODE) من خارج هذا السكربت يعطي
@@ -1644,7 +1649,7 @@ window.App = (function(){
     state.roundStartTime = performance.now();
 
     document.getElementById("roundNum").textContent = "#" + roundId;
-    document.getElementById("roundUser").textContent = "PLAYER";
+    document.getElementById("roundUser").textContent = TG_DISPLAY_NAME;
     document.getElementById("myCartelasInRound").textContent = state.realGrids.length;
     document.getElementById("calledCount").textContent = "0";
     document.getElementById("drawnBall").textContent = "-";
