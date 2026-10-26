@@ -39,6 +39,9 @@
     --font-numbers:'Roboto Condensed', sans-serif;
     --ruby:#b8203a;
     --ruby-faded:rgba(184,32,58,.55);
+    --hit-red:#cf1f33;
+    --outline:-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000,
+              0 -1px 0 #000, 0 1px 0 #000, -1px 0 0 #000, 1px 0 0 #000;
     --orange-glow:#ff8c00;
   }
 
@@ -182,22 +185,32 @@
   /* ---------- شاشة اختيار السلوتات ---------- */
   .closes-timer{ color:var(--danger); font-weight:700; }
   .slots-grid{
-    display:grid; grid-template-columns:repeat(8,1fr); gap:5px;
+    display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); gap:5px;
     background:var(--bg-1); border:1px solid var(--maroon); border-radius:10px;
     padding:10px; max-height:280px; overflow-y:auto; margin-bottom:12px;
   }
   .slot-cell{
     aspect-ratio:1; display:flex; align-items:center; justify-content:center;
     background:var(--bg-2); border:1px solid transparent; border-radius:6px;
-    font-size:11px; color:var(--text-dim); cursor:pointer; position:relative;
+    font-size:22px; font-weight:700; line-height:1; white-space:nowrap; text-shadow:var(--outline);
+    color:var(--text-dim); cursor:pointer; position:relative;
     transition:transform .15s ease;
   }
+  .slot-cell.n4{ font-size:17px; }
   .slot-cell.taken{ border-color:var(--gold-dark); color:var(--gold-light); cursor:not-allowed; opacity:.6; }
-  .slot-cell.mine{
+  /* مختار من لاعب آخر: اللون الحالي (حافة برتقالية مضيئة + رقم برتقالي مضيء) ولا يمكنك اختياره */
+  .slot-cell.others{
     background:var(--bg-2); color:var(--orange-glow); font-weight:800;
-    opacity:1; cursor:pointer; border:1.5px solid var(--orange-glow);
+    opacity:1; cursor:not-allowed; border:1.5px solid var(--orange-glow);
     box-shadow:0 0 8px var(--orange-glow), inset 0 0 5px rgba(255,140,0,.5);
-    text-shadow:0 0 6px var(--orange-glow);
+    text-shadow:var(--outline), 0 0 6px var(--orange-glow);
+  }
+  /* اخترتَه أنت: تدرج قطري أحمر ← وردي ← برتقالي */
+  .slot-cell.mine{
+    background:linear-gradient(135deg,#e5162d 0%,#ff5a9d 50%,#ff9a1f 100%);
+    color:#fff; font-weight:800; opacity:1; cursor:pointer;
+    border:1.5px solid rgba(255,255,255,.9);
+    box-shadow:0 0 6px rgba(255,255,255,.3);
     animation:cartelaPop .35s ease;
   }
   @keyframes cartelaPop{ 0%{transform:scale(.75);} 60%{transform:scale(1.12);} 100%{transform:scale(1);} }
@@ -206,14 +219,42 @@
     background:var(--bg-1); border:1px solid var(--maroon); border-radius:10px; padding:10px; margin-bottom:12px;
   }
   .my-cartelas-box h4{ margin:0 0 8px; font-size:12px; color:var(--text-dim); display:flex; justify-content:space-between; }
-  .cartela-slots-row{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .cartela-slots-row{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
   .cartela-slot-empty{
-    flex:1; aspect-ratio:1; border:1px dashed var(--maroon); border-radius:10px;
+    flex:1; min-width:0; min-height:150px; border:1px dashed var(--maroon); border-radius:10px;
     display:flex; align-items:center; justify-content:center; text-align:center;
     color:var(--text-muted); font-size:11px; padding:6px;
   }
 
   .action-row{ display:flex; gap:8px; margin-bottom:6px; }
+  .autoplay-btn{
+    width:100%; margin-top:2px; padding:16px 12px; border:none; border-radius:12px; cursor:pointer;
+    font-family:var(--font-display), -apple-system, "Segoe UI", Tahoma, Arial, sans-serif;
+    font-weight:700; font-size:16px; letter-spacing:1px; color:#fff;
+    text-shadow:0 1px 3px rgba(0,0,0,.5);
+    background:linear-gradient(90deg,#e5162d 0%,#ff5a9d 50%,#ff9a1f 100%);
+    box-shadow:0 4px 16px rgba(229,22,45,.4);
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .autoplay-btn:active{ transform:scale(.98); }
+  .autoplay-btn.on{ animation:apPulse 1.6s ease-in-out infinite; }
+  @keyframes apPulse{
+    0%,100%{ box-shadow:0 0 8px rgba(255,154,31,.5); }
+    50%{ box-shadow:0 0 22px rgba(255,90,157,.9); }
+  }
+  .confirm-box{ border-color:var(--gold); max-width:330px; }
+  .confirm-box .ic{ color:var(--gold-light); }
+  .confirm-box .msg{ font-size:13px; color:var(--text); line-height:1.9; white-space:pre-line; margin:6px 0 14px; }
+  .confirm-box .btns{ display:flex; gap:8px; }
+  .winner-block{
+    width:100%; max-width:340px; background:var(--bg-1); border:1px solid var(--maroon);
+    border-radius:12px; padding:8px; margin:0 auto 10px;
+  }
+  .winner-block.mine{ border-color:var(--gold); box-shadow:0 0 12px rgba(240,169,43,.45); }
+  .wb-head{ display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:6px; font-size:11px; }
+  .wb-name{ color:var(--gold-light); font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:52%; text-align:left; }
+  .wb-tag{ background:var(--gold-dark); color:#fff2d0; border-radius:8px; padding:1px 7px; font-size:9px; white-space:nowrap; }
+  .wb-pay{ color:var(--gold-light); font-weight:800; white-space:nowrap; }
 
   /* ---------- بطاقة كرتيلة ---------- */
   .cartela{
@@ -223,17 +264,58 @@
   .cartela-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; flex-wrap:wrap; gap:2px; }
   .cartela-head .name{ font-size:10px; font-weight:700; color:var(--gold-light); }
   .cartela-head .vip{ font-size:8px; background:var(--gold-dark); color:#fff2d0; padding:1px 5px; border-radius:6px; }
-  .bingo-grid{ display:grid; grid-template-columns:repeat(5,1fr); gap:2px; }
+  .bingo-grid{ display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:2px; }
   .bingo-head{ text-align:center; font-size:9.5px; font-weight:800; padding:2px 0; border-radius:4px; margin-bottom:1px; }
   .bingo-cell{
     aspect-ratio:1; display:flex; align-items:center; justify-content:center;
-    background:var(--bg-2); border-radius:4px; font-size:9.5px; color:var(--text-dim);
-    position:relative;
+    background:var(--bg-2); border-radius:4px; font-size:19px; color:var(--text-dim);
+    position:relative; border:1px solid transparent;
+    font-weight:700; line-height:1; white-space:nowrap; text-shadow:var(--outline);
   }
-  .bingo-cell.free{ background:var(--maroon); color:var(--gold-light); font-weight:700; font-size:12px; }
-  .bingo-cell.marked{ background:linear-gradient(180deg,var(--pink),var(--pink-dark)); color:#fff; font-weight:700; }
-  .bingo-cell.winline{ outline:2px solid var(--gold); box-shadow:0 0 8px var(--gold); }
-  .bingo-cell.crown::after{ content:"👑"; position:absolute; top:-9px; font-size:10px; }
+  .bingo-cell.free{ background:var(--maroon); color:var(--gold-light); font-weight:700; font-size:18px; text-shadow:none; }
+
+  /* الكرة المسحوبة سابقًا: أحمر + إضاءة حمراء خفيفة جدًا + حافة بيضاء خافتة جدًا */
+  .bingo-cell.marked{
+    background:var(--hit-red); color:#fff; font-weight:700;
+    border:1px solid rgba(255,255,255,.22);
+    box-shadow:0 0 4px rgba(255,50,70,.35);
+  }
+  /* الكرة المسحوبة الآن: تدرج قطري (أحمر ← وردي ← برتقالي) + حافة بيضاء رقيقة واضحة + إضاءة خفيفة جدًا */
+  .bingo-cell.marked.current{
+    background:linear-gradient(135deg,#e5162d 0%,#ff5a9d 50%,#ff9a1f 100%);
+    color:#fff; font-weight:800; text-shadow:var(--outline);
+    border:1px solid rgba(255,255,255,.95);
+    box-shadow:0 0 6px rgba(255,255,255,.3);
+  }
+  .bingo-cell.pop{ animation:cellPop .5s ease; }
+
+  /* ---------- شكل كرتيلة الفائز ---------- */
+  /* مسحوبة ولم تكمل خطًا: أحمر غامق + إضاءة خفيفة جدًا وثابتة (بدون وميض) + رقم أبيض Bold + حافة بيضاء */
+  .bingo-cell.wc-drawn{
+    background:#7a0f1d; color:#fff; font-weight:700;
+    border:1.5px solid rgba(255,255,255,.85);
+    box-shadow:0 0 4px rgba(255,60,80,.35);
+  }
+  /* خلايا الخط المكتمل: خلفية ذهبية مضيئة + وميض + رقم أسود Bold + حافة برتقالية 3px */
+  .bingo-cell.wc-line{
+    background:linear-gradient(180deg,#ffd75e,#f0a92b); color:#000; font-weight:700; text-shadow:none;
+    border:3px solid #ff8c00;
+    animation:blinkGold 1s ease-in-out infinite;
+  }
+  /* آخر كرة أكملت الخط: خلفية بيضاء مضيئة + وميض + رقم أسود Bold + حافة برتقالية 3px */
+  .bingo-cell.wc-last{
+    background:#fff; color:#000; font-weight:700; text-shadow:none;
+    border:3px solid #ff8c00;
+    animation:blinkWhite 1s ease-in-out infinite;
+  }
+  @keyframes blinkGold{
+    0%,100%{ box-shadow:0 0 12px 3px rgba(255,205,70,.95); filter:brightness(1.15); }
+    50%{ box-shadow:0 0 3px 1px rgba(255,205,70,.35); filter:brightness(.8); }
+  }
+  @keyframes blinkWhite{
+    0%,100%{ box-shadow:0 0 14px 4px rgba(255,255,255,.95); filter:brightness(1.05); }
+    50%{ box-shadow:0 0 4px 1px rgba(255,255,255,.4); filter:brightness(.82); }
+  }
 
   /* ---------- شاشة الجولة ---------- */
   .top-card{ display:flex; align-items:center; justify-content:space-between; gap:4px; flex-wrap:wrap;
@@ -249,7 +331,7 @@
 
   .section-card{ background:var(--bg-1); border:1px solid var(--maroon); border-radius:12px; padding:8px; }
   .round-logo{ width:28px;height:28px;border-radius:50%;flex-shrink:0;
-    background:linear-gradient(180deg,var(--gold-light),var(--gold-dark));
+    background:linear-gradient(180deg,#ff3b4e,#a30f1f); box-shadow:0 0 6px rgba(255,60,80,.45);
     display:flex;align-items:center;justify-content:center;font-size:13px; }
   .round-title{ font-size:11px; font-weight:800; color:var(--gold-light); white-space:nowrap; }
   .round-num{ font-size:8px; color:var(--text-muted); font-weight:500; }
@@ -269,11 +351,8 @@
     background:radial-gradient(circle at 35% 30%, var(--gold-light), var(--gold-dark));
     display:flex;align-items:center;justify-content:center;
     font-size:24px;font-weight:800;color:#3d1a00; border:3px solid var(--pink-dark);
-    transition:box-shadow .3s ease; }
-  .drawn-ball.pop{
-    animation:ballPop .65s ease;
-    box-shadow:0 0 22px 7px rgba(240,169,43,.85);
-  }
+    box-shadow:none; }
+  .drawn-ball.pop{ animation:ballPop .65s ease; }
   @keyframes ballPop{
     0%{ transform:scale(.7); }
     45%{ transform:scale(1.15); }
@@ -293,6 +372,12 @@
     align-items:center; justify-content:center; gap:1px; }
   .history-ball .hcol{ font-size:6.5px; font-weight:800; padding:0 4px; border-radius:4px; }
   .history-ball .hnum{ font-size:10px; font-weight:700; color:var(--text); }
+  .history-ball.pop-in{ animation:historyPop .55s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes historyPop{
+    0%{ transform:scale(.3); opacity:0; }
+    60%{ transform:scale(1.25); opacity:1; }
+    100%{ transform:scale(1); opacity:1; }
+  }
 
   .col-section-title{ display:flex; justify-content:space-between; align-items:center;
     font-size:10.5px; color:var(--gold-light); font-weight:700; margin-bottom:6px; }
@@ -306,30 +391,35 @@
 
   .matrix{
     background:var(--bg-1); border:1px solid var(--maroon); border-radius:8px; padding:6px;
-    display:grid; grid-template-columns:repeat(5,1fr); gap:4px;
+    display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:4px;
   }
   .matrix .col{ display:flex; flex-direction:column; gap:4px; }
   .matrix-cell{
-    background:var(--bg-2); border-radius:4px; font-size:9px; text-align:center;
-    padding:6.5px 0; color:var(--text-muted); line-height:1.1;
-    transition:background .25s ease;
+    background:var(--bg-2); border-radius:4px; font-size:18px; text-align:center;
+    padding:2.45px 0; color:var(--text-muted); line-height:1;
+    border:1px solid transparent; font-weight:700; white-space:nowrap; text-shadow:var(--outline);
   }
-  .matrix-cell.hit{ background:var(--ruby-faded); color:#f5cfcf; font-weight:700; }
+  /* مسحوب سابقًا: أحمر + إضاءة حمراء خفيفة جدًا + حافة بيضاء خافتة جدًا */
+  .matrix-cell.hit{
+    background:var(--hit-red); color:#fff; font-weight:700;
+    border:1px solid rgba(255,255,255,.22);
+    box-shadow:0 0 4px rgba(255,50,70,.35);
+  }
+  /* مسحوب الآن: تدرج قطري من أعلى اليسار لأسفل اليمين (أحمر ← وردي ← برتقالي) + حافة بيضاء رقيقة + إضاءة خفيفة جدًا */
   .matrix-cell.current{
-    background:linear-gradient(180deg,var(--gold-light), var(--ruby));
-    color:#3d0a10; font-weight:800;
+    background:linear-gradient(135deg,#e5162d 0%,#ff5a9d 50%,#ff9a1f 100%);
+    color:#fff; font-weight:800; text-shadow:var(--outline);
+    border:1px solid rgba(255,255,255,.95);
+    box-shadow:0 0 6px rgba(255,255,255,.3);
   }
-  .matrix-cell.pop{
-    animation:cellPop .5s ease;
-    box-shadow:0 0 10px 3px rgba(255,140,0,.75);
-  }
+  .matrix-cell.pop{ animation:cellPop .5s ease; }
   @keyframes cellPop{
     0%{ transform:scale(1); }
     40%{ transform:scale(1.25); }
     75%{ transform:scale(1.05); }
     100%{ transform:scale(1); }
   }
-  .matrix-cell.headrow{ font-weight:800; font-size:10px; border-radius:4px; padding:6.5px 0; }
+  .matrix-cell.headrow{ font-weight:800; font-size:10px; border-radius:4px; padding:6.5px 0; line-height:1.1; text-shadow:none; }
 
   .awaiting{ text-align:center; color:var(--text-muted); font-size:12px; padding:10px 0; }
 
@@ -417,7 +507,8 @@
       </div>
       <div class="rules-heading">WINNING RULES &amp; PATTERNS</div>
       <ul class="rules-list">
-        <li><b>የማሸነፊያ ስርዓት፦</b> 5 በአንድ መስመር (ረድፍ / አምድ / ሰያፍ)</li>
+        <li><b>የማሸነፊያ ስርዓት፦</b> በአንድ ካርቴላ ሁለት መስመር (ረድፍ / አምድ / ሰያፍ) መጀመሪያ ያጠናቀቀ ጨዋታውን ያቆማል</li>
+        <li><b>ሽልማት፦</b> ሁለት መስመር ብቻ ከተገኘ 100%፤ የአንድ መስመር አሸናፊም ካለ 80% / 20%</li>
         <li><b>ራስ-ሰር ማወቂያ፦</b> Automatic Bingo Detection</li>
         <li><b>Grand Slots፦</b> በእያንዳንዱ ዙር <span id="ruleSlotsTotal">500</span> ስሎት ይገኛል</li>
         <li><b>ክፍያ፦</b> ወዲያውኑ ወደ ዋሌት</li>
@@ -553,6 +644,7 @@
       <button class="btn" style="flex:2" onclick="App.autoAssign()">🎲 AUTO ASSIGN</button>
       <button class="btn secondary" style="flex:1" onclick="App.clearSlots()">CLEAR</button>
     </div>
+    <button class="autoplay-btn" id="autoPlayBtn" style="display:none;" onclick="App.toggleAutoPlay()">🕹 AUTO PLAY</button>
   </section>
 
   <!-- ============ 3) شاشة الجولة الفعلية ============ -->
@@ -623,7 +715,7 @@
         <div class="k">GRAND POOL</div>
         <div class="v" id="winPool">704 ETB</div>
       </div>
-      <div class="winner-name">🏅 <span id="winnerName">GRA***1</span> · PAYOUT <b id="winnerPayout" style="color:var(--gold-light)">704 ETB</b></div>
+      <div class="winner-name" id="winnerLine">🏅 <span id="winnerName">GRA***1</span> · PAYOUT <b id="winnerPayout" style="color:var(--gold-light)">704 ETB</b></div>
       <div id="winningCartelaSlot"></div>
     </div>
 
@@ -637,6 +729,17 @@
     <div class="progress-track"><div class="progress-fill" id="nextProgress"></div></div>
   </section>
 
+</div>
+
+<div class="modal-backdrop" id="confirmModal" style="display:none;">
+  <div class="modal-box confirm-box">
+    <div class="ic">⚠️</div>
+    <div class="msg" id="confirmModalText"></div>
+    <div class="btns">
+      <button class="btn secondary" id="confirmCancelBtn">Cancel</button>
+      <button class="btn" id="confirmOkBtn">OK</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -690,7 +793,7 @@ const CONFIG = {
   BALL_DRAW_MS: 2000,       // الفاصل الزمني بين كل كرة وأخرى (2.0 ثانية)
   SLOTS_TOTAL: 1000,        // إجمالي عدد الـ Grand Slots
   SLOT_SELECTION_SECONDS: 45, // مدة نافذة اختيار الكرتيلة
-  NEXT_MATCH_SECONDS: 8,    // العد التنازلي المعروض في شاشة الفائز
+  NEXT_MATCH_SECONDS: 10,   // العد التنازلي المعروض في شاشة الفائز
   PRIZE_POOL_BASE: 620,     // قاعدة تقديرية لمجمع الجائزة المعروض (تجميلي فقط) — تُستخدم فقط في وضع العرض التجريبي
   PAYOUT_RATIO: 0.80,       // نسبة الـ 80% Derash المعلنة في القواعد
   // ⚠️ ضع هنا رابط سيرفر Render الخاص بك (server.py) بعد نشره، بدون / في النهاية
@@ -1026,7 +1129,11 @@ window.App = (function(){
     // --- وضع المال الحقيقي فقط ---
     realBalance: 0,
     realRoundId: null,
-    realGrids: [],          // [{grid, is_winner, payout}, ...] كما يرجعها السيرفر فعليًا
+    realGrids: [],          // [{id, grid, is_winner, payout}, ...] كما يرجعها السيرفر فعليًا
+    realTakenSlots: new Set(),   // أرقام Slots التي حجزها لاعبون آخرون في الجولة الحالية
+    autoPlay: false,             // حالة Auto Play (مصدرها السيرفر)
+    slotBusy: 0,                 // عدد عمليات الشراء/الإلغاء الجارية (نتجاهل استطلاع الخلفية أثناءها)
+    roundEnded: false,
     lastCalledCountReal: 0
   };
 
@@ -1050,6 +1157,43 @@ window.App = (function(){
     el.classList.add(className);
   }
 
+  // أسماء اللاعبين الآخرين تأتي من السيرفر (الاسم الأول قد يحتوي رموزًا خبيثة) — نهرّبها دائمًا قبل إدراجها في HTML
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+  }
+
+  // شريط الكرات الجانبية بجانب الكرة الكبيرة: الأحدث (آخر عنصر) يظهر بحركة Pop-up
+  function renderHistoryStrip(calledList){
+    const strip = document.getElementById("historyStrip");
+    const prevBalls = calledList.slice(0,-1).slice(-6);
+    strip.innerHTML = prevBalls.map((n, i)=>{
+      const c = COLUMNS.find(cc => n >= COL_RANGES[cc][0] && n <= COL_RANGES[cc][1]);
+      const st = COL_STYLES[c];
+      const popCls = (i === prevBalls.length - 1) ? " pop-in" : "";
+      return `<div class="history-ball${popCls}"><span class="hcol" style="background:${st.bg};color:${st.fg}">${c}</span><span class="hnum">${n}</span></div>`;
+    }).join("");
+  }
+
+  // تعليم خلايا الكرتيلات: كل ما سُحب = marked (أحمر)، والكرة الأحدث فقط = current (تدرج قطري) + Pop.
+  // تُرجع true لو الكرة الجديدة موجودة في إحدى كرتيلاتك (لتشغيل صوت الإصابة)
+  function refreshCartelaMarks(newBall){
+    let hitNow = false;
+    document.querySelectorAll(".cartela .bingo-grid .bingo-cell").forEach(cell=>{
+      const v = cell.dataset.val;
+      if(v === undefined || v === "FREE") return;
+      const n = Number(v);
+      if(matrixHits.has(n)) cell.classList.add("marked");
+      if(n === newBall){
+        if(!cell.classList.contains("current")) hitNow = true;
+        cell.classList.add("current");
+        popAnimate(cell, "pop");
+      } else {
+        cell.classList.remove("current");
+      }
+    });
+    return hitNow;
+  }
+
   /* ---------- شاشة 1: المقدمة ---------- */
   async function enterGame(){
     Sound.click();
@@ -1060,6 +1204,7 @@ window.App = (function(){
       try{
         const authRes = await apiPost("/api/auth", {});
         state.realBalance = authRes.balance;
+        state.autoPlay = !!authRes.auto_play;
 
         if(!authRes.registered){
           showRegistrationGate();
@@ -1070,9 +1215,7 @@ window.App = (function(){
         // بدون هذا كانت شاشة اختيار الكرتيلة تظهر للحظة دائمًا حتى لو
         // كانت الجولة أصلاً في منتصفها، قبل أن "تقفز" بسرعة لشاشة اللعب
         const roundRes = await apiPost("/api/round/current", {});
-        if(roundRes.your_entries && roundRes.your_entries.length){
-          state.realGrids = roundRes.your_entries.map(e => ({ grid: e.grid, is_winner: e.is_winner, payout: e.payout }));
-        }
+        applySlotsData(roundRes);
         if(roundRes.status === "collecting"){
           showSlotsScreenWithData(roundRes);
         } else {
@@ -1098,8 +1241,10 @@ window.App = (function(){
     document.getElementById("closesTimer").textContent = fmtTime(res.closes_in || 0);
     document.getElementById("slotsPrizePool").textContent = res.prize_pool;
     document.getElementById("slotsBalance").textContent = state.realBalance;
+    document.getElementById("autoPlayBtn").style.display = "";
     renderSlotsGridReal();
     renderMyCartelasPreviewReal();
+    renderAutoPlayBtn();
     showScreen("screen-slots");
 
     clearInterval(state.closesTimerId);
@@ -1116,7 +1261,7 @@ window.App = (function(){
     // نعرض كل الـ 500 سلوت (1 إلى SLOTS_TOTAL) — الشبكة قابلة للتمرير الرأسي بالكامل
     for(let num=1; num<=CONFIG.SLOTS_TOTAL; num++){
       const cell = document.createElement("div");
-      cell.className = "slot-cell";
+      cell.className = "slot-cell" + (num >= 1000 ? " n4" : "");
       cell.textContent = num;
       cell.dataset.num = num;
       if(state.mySlots.includes(num)) cell.classList.add("mine");
@@ -1161,11 +1306,30 @@ window.App = (function(){
   }
 
   function clearSlots(){
-    if(REAL_MONEY_MODE){ Sound.error(); toast("የተገዙ ካርቴላዎች መመለስ አይቻልም — ገንዘቡ ተከፍሏል"); return; }
+    if(REAL_MONEY_MODE) return clearSlotsReal();
     state.mySlots = Array(CONFIG.MAX_CARTELAS).fill(null);
     Sound.click();
     renderSlotsGrid();
     renderMyCartelasPreview();
+  }
+
+  async function clearSlotsReal(){
+    if(state.realGrids.length === 0 || state.slotBusy) return;
+    Sound.click();
+    state.slotBusy++;
+    try{
+      const res = await apiPost("/api/round/leave_all", {});
+      state.realBalance = res.balance;
+      document.getElementById("slotsBalance").textContent = state.realBalance;
+      state.realGrids = [];
+      renderSlotsGridReal();
+      renderMyCartelasPreviewReal();
+    }catch(e){
+      Sound.error();
+      const code = e.data && e.data.error;
+      if(code === "cannot_cancel_round_closed") toast("ጊዜው አልቋል — ከእንግዲህ መሰረዝ አይቻልም።");
+      else toast("ስህተት ተከስቷል። ዳግም ይሞክሩ።");
+    } finally { state.slotBusy--; }
   }
 
   function renderMyCartelasPreview(){
@@ -1359,29 +1523,14 @@ window.App = (function(){
     const mxCell = document.getElementById("mx-"+ball);
     if(mxCell){ mxCell.classList.add("current"); popAnimate(mxCell, "pop"); }
 
-    // شريط آخر الكرات المسحوبة (باستثناء الكرة الحالية)
-    const strip = document.getElementById("historyStrip");
-    const prevBalls = state.calledBalls.slice(0,-1).slice(-6);
-    strip.innerHTML = prevBalls.map(n=>{
-      const c = COLUMNS.find(cc => n >= COL_RANGES[cc][0] && n <= COL_RANGES[cc][1]);
-      const st = COL_STYLES[c];
-      return `<div class="history-ball"><span class="hcol" style="background:${st.bg};color:${st.fg}">${c}</span><span class="hnum">${n}</span></div>`;
-    }).join("");
+    // شريط آخر الكرات المسحوبة (باستثناء الكرة الحالية) مع Pop-up للأحدث
+    renderHistoryStrip(state.calledBalls);
 
     Sound.ballDraw();
     const playedRealRecording = Sound.playBallRecording(ball);
     if(!playedRealRecording) Sound.speakBallAmharic(ball, col);
 
-    let anyHitOnMyCartela = false;
-    myCartelaObjs.forEach(c=>{
-      const gridEl = document.getElementById("grid-"+c.id);
-      gridEl.querySelectorAll(".bingo-cell").forEach(cell=>{
-        if(String(cell.dataset.val) === String(ball) && !cell.classList.contains("marked")){
-          cell.classList.add("marked");
-          anyHitOnMyCartela = true;
-        }
-      });
-    });
+    const anyHitOnMyCartela = refreshCartelaMarks(ball);
     if(anyHitOnMyCartela) Sound.cartelaHit();
 
     // فحص الفوز التلقائي بعد كل كرة (Automatic Bingo Detection)
@@ -1398,19 +1547,17 @@ window.App = (function(){
   }
 
   function checkWin(cartela){
+    // القاعدة الجديدة: أول كرتيلة تكمل خطين (صفوف/أعمدة/قطران) توقف الجولة
     const marked = (r,c) => {
       const v = cartela.grid[r][c];
       return v === "FREE" || matrixHits.has(v);
     };
-    for(let r=0;r<5;r++){
-      if([0,1,2,3,4].every(c=>marked(r,c))) return {type:"row", index:r};
-    }
-    for(let c=0;c<5;c++){
-      if([0,1,2,3,4].every(r=>marked(r,c))) return {type:"col", index:c};
-    }
-    if([0,1,2,3,4].every(i=>marked(i,i))) return {type:"diag", index:0};
-    if([0,1,2,3,4].every(i=>marked(i,4-i))) return {type:"diag", index:1};
-    return null;
+    let lines = 0;
+    for(let r=0;r<5;r++) if([0,1,2,3,4].every(c=>marked(r,c))) lines++;
+    for(let c=0;c<5;c++) if([0,1,2,3,4].every(r=>marked(r,c))) lines++;
+    if([0,1,2,3,4].every(i=>marked(i,i))) lines++;
+    if([0,1,2,3,4].every(i=>marked(i,4-i))) lines++;
+    return lines >= 2 ? { lines } : null;
   }
 
   /* ---------- شاشة 4: إعلان الفائز ---------- */
@@ -1437,7 +1584,7 @@ window.App = (function(){
       document.getElementById("winPool").textContent = payout + " ETB";
       document.getElementById("winnerPayout").textContent = payout + " ETB";
       document.getElementById("winnerName").textContent = "YOU 🎉";
-      document.getElementById("statLines").textContent = "1";
+      document.getElementById("statLines").textContent = String(line && line.lines ? line.lines : 2);
       document.getElementById("winningCartelaSlot").innerHTML = renderWinningCartela(cartela, line);
       launchConfetti();
     }
@@ -1465,27 +1612,33 @@ window.App = (function(){
   }
 
   function renderWinningCartela(cartela, line){
-    const isWin = (r,c) => {
-      if(!line) return false;
-      if(line.type === "row") return r === line.index;
-      if(line.type === "col") return c === line.index;
-      if(line.type === "diag" && line.index === 0) return r === c;
-      if(line.type === "diag" && line.index === 1) return r === 4-c;
-      return false;
-    };
+    // آخر كرة سُحبت = الكرة التي أكملت الخط (الجولة تتوقف فور أول بينغو)
+    const lastBall = Array.from(matrixHits).pop();
+    const g = cartela.grid;
+    const isMarked = (r,c) => g[r][c] === "FREE" || matrixHits.has(g[r][c]);
+
+    // كل الخطوط المكتملة (صفوف/أعمدة/قطران) — قد يكتمل أكثر من خط بنفس الكرة
+    const lineCells = new Set();
+    for(let r=0;r<5;r++) if([0,1,2,3,4].every(c=>isMarked(r,c))) for(let c=0;c<5;c++) lineCells.add(r+"-"+c);
+    for(let c=0;c<5;c++) if([0,1,2,3,4].every(r=>isMarked(r,c))) for(let r=0;r<5;r++) lineCells.add(r+"-"+c);
+    if([0,1,2,3,4].every(i=>isMarked(i,i))) for(let i=0;i<5;i++) lineCells.add(i+"-"+i);
+    if([0,1,2,3,4].every(i=>isMarked(i,4-i))) for(let i=0;i<5;i++) lineCells.add(i+"-"+(4-i));
+
     let html = `<div class="cartela" style="max-width:220px;margin:0 auto 14px;">
       <div class="cartela-head"><span class="name">CARTELA #${cartela.id}</span><span class="vip">VIP TICKET</span></div>
       <div class="bingo-grid">`;
     COLUMNS.forEach(c=> html += `<div class="bingo-head" style="background:${COL_STYLES[c].bg};color:${COL_STYLES[c].fg}">${c}</div>`);
     for(let r=0;r<5;r++){
       for(let c=0;c<5;c++){
-        const v = cartela.grid[r][c];
+        const v = g[r][c];
         const classes = ["bingo-cell"];
-        if(v==="FREE") classes.push("free");
-        else if(matrixHits.has(v)) classes.push("marked");
-        if(isWin(r,c)) classes.push("winline");
-        const isMiddleOfLine = (line && line.type==="row" && c===2) || (line && line.type==="col" && r===2) || (line && line.type==="diag" && (r===2||c===2));
-        if(isWin(r,c) && isMiddleOfLine) classes.push("crown");
+        if(lineCells.has(r+"-"+c)){
+          classes.push(v === lastBall ? "wc-last" : "wc-line");   // أبيض مضيء للأخيرة، ذهبي مضيء لبقية الخط
+        } else if(v === "FREE"){
+          classes.push("free");
+        } else if(matrixHits.has(v)){
+          classes.push("wc-drawn");                                 // مسحوبة ولم تكمل خطًا
+        }
         html += `<div class="${classes.join(' ')}">${v==='FREE'?'👑':v}</div>`;
       }
     }
@@ -1532,15 +1685,28 @@ window.App = (function(){
      كل قرار فوز أو تغيير رصيد هنا يأتي فقط من استجابة السيرفر —
      لا يوجد أي Math.random() أو فحص فوز محلي في هذا القسم إطلاقًا.
      ============================================================ */
+  // يطبّق بيانات السيرفر (مصدر الحقيقة): كرتيلاتي + الأرقام المحجوزة من الآخرين + حالة Auto Play + الرصيد
+  function applySlotsData(res){
+    state.realGrids = (res.your_entries || []).map(e => ({
+      id: e.id, grid: e.grid, is_winner: e.is_winner, payout: e.payout, slot_number: e.slot_number
+    }));
+    state.realTakenSlots = new Set(res.taken_slots || []);
+    if(res.auto_play !== undefined) state.autoPlay = !!res.auto_play;
+    if(res.balance !== undefined) state.realBalance = res.balance;
+  }
+
   async function startSlotSelectionReal(){
     showScreen("screen-slots");
     document.getElementById("ruleStake").textContent = CONFIG.ENTRY_STAKE + " ETB";
     document.getElementById("ruleDraw").textContent = (CONFIG.BALL_DRAW_MS/1000).toFixed(1) + " SECS";
     document.getElementById("slotsStatsBox").style.display = "";
+    document.getElementById("autoPlayBtn").style.display = "";
     document.getElementById("slotsBalance").textContent = state.realBalance;
     state.realGrids = [];
+    state.realTakenSlots = new Set();
     renderSlotsGridReal();
     renderMyCartelasPreviewReal();
+    renderAutoPlayBtn();
 
     clearInterval(state.closesTimerId);
     state.closesTimerId = setInterval(pollSlotsReal, 1000);
@@ -1548,52 +1714,76 @@ window.App = (function(){
   }
 
   async function pollSlotsReal(){
+    if(state.slotBusy) return;             // لا نستطلع أثناء شراء/إلغاء جارٍ حتى لا نكتب فوق حالة أحدث
     try{
       const res = await apiPost("/api/round/current", {});
+      if(state.slotBusy) return;           // بدأت عملية أثناء انتظار الرد → هذا الرد قديم
       state.realRoundId = res.round_id;
+      applySlotsData(res);
       document.getElementById("slotsRoundLabel").textContent = "ROYAL ROUND #" + res.round_id;
       document.getElementById("closesTimer").textContent = fmtTime(res.closes_in || 0);
       document.getElementById("slotsPrizePool").textContent = res.prize_pool;
       document.getElementById("slotsBalance").textContent = state.realBalance;
       if(res.closes_in != null && res.closes_in <= 5 && res.closes_in > 0) Sound.countdownTick();
 
-      // 🔧 إعادة مزامنة كرتيلاتك من السيرفر (مصدر الحقيقة الوحيد) — يحل مشكلة
-      // اختفاء الكرتيلات عند إغلاق اللعبة وإعادة فتحها في نفس الجولة، لأن
-      // state.realGrids المحلية تُصفَّر عند كل تحميل صفحة جديد بينما السيرفر
-      // يتذكر كرتيلاتك الحقيقية طالما الجولة نفسها لم تنتهِ بعد
-      if(res.your_entries && res.your_entries.length){
-        state.realGrids = res.your_entries.map(e => ({ grid: e.grid, is_winner: e.is_winner, payout: e.payout }));
-      }
-
       if(res.status !== "collecting"){
         clearInterval(state.closesTimerId);
         startRoundReal(res.round_id);
+        return;
       }
+      renderSlotsGridReal();
+      renderMyCartelasPreviewReal();
+      renderAutoPlayBtn();
     }catch(e){ /* فشل مؤقت بالشبكة — سيعاد المحاولة تلقائيًا بعد ثانية */ }
   }
 
+  // الشبكة تُبنى مرة واحدة فقط ثم نحدّث الألوان في مكانها — بدون إعادة بناء الـ 1000 خلية
+  // (إعادة البناء كانت تُرجع التمرير لأعلى بعد كل ضغطة وكل ثانية)
+  let slotCells = [];
   function renderSlotsGridReal(){
     const grid = document.getElementById("slotsGrid");
-    grid.innerHTML = "";
+    if(slotCells.length !== CONFIG.SLOTS_TOTAL || grid.children.length !== CONFIG.SLOTS_TOTAL){
+      grid.innerHTML = "";
+      slotCells = [null];
+      for(let num=1; num<=CONFIG.SLOTS_TOTAL; num++){
+        const cell = document.createElement("div");
+        cell.className = "slot-cell" + (num >= 1000 ? " n4" : "");
+        cell.textContent = num;
+        cell.onclick = () => onSlotTapReal(num);
+        grid.appendChild(cell);
+        slotCells.push(cell);
+      }
+    }
+    const mine = new Set(state.realGrids.map(g => g.slot_number).filter(n => n != null));
     for(let num=1; num<=CONFIG.SLOTS_TOTAL; num++){
-      const cell = document.createElement("div");
-      cell.className = "slot-cell";
-      cell.textContent = num;
-      if(num <= state.realGrids.length) cell.classList.add("mine");
-      cell.onclick = () => joinOneCartelaReal();
-      grid.appendChild(cell);
+      const cell = slotCells[num];
+      const isMine = mine.has(num);
+      const isOthers = !isMine && state.realTakenSlots.has(num);
+      if(cell.classList.contains("mine") !== isMine) cell.classList.toggle("mine", isMine);
+      if(cell.classList.contains("others") !== isOthers) cell.classList.toggle("others", isOthers);
     }
   }
 
-  async function joinOneCartelaReal(){
+  async function onSlotTapReal(num){
+    if(state.slotBusy) return;
+    const mineIdx = state.realGrids.findIndex(g => g.slot_number === num);
+    if(mineIdx !== -1){ await cancelOneCartelaReal(mineIdx); return; }   // الضغط على رقمك مرة ثانية = إلغاء
+    if(state.realTakenSlots.has(num)){
+      Sound.error(); toast("ይህ ቁጥር በሌላ ተጫዋች ተመርጧል።"); return;
+    }
+    await joinOneCartelaReal(num);
+  }
+
+  async function joinOneCartelaReal(num){
     if(state.realGrids.length >= CONFIG.MAX_CARTELAS){
       Sound.error(); toast(`አስቀድመው ${CONFIG.MAX_CARTELAS} ካርቴላዎች ገዝተዋል`); return;
     }
+    state.slotBusy++;
     try{
-      const res = await apiPost("/api/round/join", { count: 1 });
+      const res = await apiPost("/api/round/join", { slot_numbers: [num] });
       state.realBalance = res.balance;
       document.getElementById("slotsBalance").textContent = state.realBalance;
-      state.realGrids.push({ grid: res.grids[0], is_winner:false, payout:0 });
+      state.realGrids.push({ id: res.entry_ids[0], grid: res.grids[0], is_winner:false, payout:0, slot_number: res.slot_numbers[0] });
       Sound.cartelaHit();
       renderSlotsGridReal();
       renderMyCartelasPreviewReal();
@@ -1603,18 +1793,49 @@ window.App = (function(){
       if(code === "insufficient_balance") toast(`በቂ ቀሪ ሂሳብ የለዎትም። ቀሪ ሂሳብ፦ ${e.data.balance} ETB`);
       else if(code === "max_cartelas_exceeded") toast(`ከፍተኛው የካርቴላ ብዛት ${e.data.max} ነው`);
       else if(code === "no_open_round") toast("ይህ ዙር ተዘግቷል፣ ቀጣዩን ዙር ይጠብቁ።");
+      else if(code === "slot_taken"){
+        if(e.data.slot) state.realTakenSlots.add(e.data.slot);
+        renderSlotsGridReal();
+        toast("ይህ ቁጥር በሌላ ተጫዋች ተመርጧል።");
+      }
       else toast("ስህተት ተከስቷል። ዳግም ይሞክሩ።");
+    } finally { state.slotBusy--; }
+  }
+
+  async function cancelOneCartelaReal(idx){
+    const entry = state.realGrids[idx];
+    if(!entry || entry.id == null){
+      toast("ይቅርታ፣ ይህን ካርቴላ ማቋረጥ አይቻልም።"); return;
     }
+    Sound.click();
+    state.slotBusy++;
+    try{
+      const res = await apiPost("/api/round/leave_one", { entry_id: entry.id });
+      state.realBalance = res.balance;
+      document.getElementById("slotsBalance").textContent = state.realBalance;
+      state.realGrids.splice(idx, 1);
+      renderSlotsGridReal();
+      renderMyCartelasPreviewReal();
+    }catch(e){
+      Sound.error();
+      const code = e.data && e.data.error;
+      if(code === "cannot_cancel_round_closed") toast("ጊዜው አልቋል — ከእንግዲህ መሰረዝ አይቻልም።");
+      else toast("ስህተት ተከስቷል። ዳግም ይሞክሩ።");
+    } finally { state.slotBusy--; }
   }
 
   async function autoAssignReal(){
     const need = CONFIG.MAX_CARTELAS - state.realGrids.length;
     if(need <= 0){ Sound.error(); toast(`አስቀድመው ${CONFIG.MAX_CARTELAS} ካርቴላዎች ገዝተዋል`); return; }
+    if(state.slotBusy) return;
+    state.slotBusy++;
     try{
-      const res = await apiPost("/api/round/join", { count: need });
+      const res = await apiPost("/api/round/join", { count: need });   // السيرفر يختار أرقامًا عشوائية حرّة فعلاً
       state.realBalance = res.balance;
       document.getElementById("slotsBalance").textContent = state.realBalance;
-      res.grids.forEach(g => state.realGrids.push({ grid: g, is_winner:false, payout:0 }));
+      res.grids.forEach((g,i) => {
+        state.realGrids.push({ id: res.entry_ids[i], grid: g, is_winner:false, payout:0, slot_number: res.slot_numbers[i] });
+      });
       Sound.cartelaHit();
       renderSlotsGridReal();
       renderMyCartelasPreviewReal();
@@ -1624,7 +1845,61 @@ window.App = (function(){
       if(code === "insufficient_balance") toast(`በቂ ቀሪ ሂሳብ የለዎትም። ቀሪ ሂሳብ፦ ${e.data.balance} ETB`);
       else if(code === "no_open_round") toast("ይህ ዙር ተዘግቷል፣ ቀጣዩን ዙር ይጠብቁ።");
       else toast("ስህተት ተከስቷል። ዳግም ይሞክሩ።");
-    }
+    } finally { state.slotBusy--; }
+  }
+
+  /* ---------- Auto Play ---------- */
+  const AUTOPLAY_WARNING =
+    "ማስጠንቀቂያ\n\n" +
+    "ይህ Auto Play መሳሪያ ከጨዋታው ውጭ (ኦፍላይን) ቢሆኑም እንኳ ካርቴላዎችን በራስ-ሰር እየገዛ ከቀሪ ሂሳብዎ ገንዘብ ሊቀንስ ይችላል።\n" +
+    "ቀሪ ሂሳብዎ እስኪያልቅ ድረስ መጫወቱን ይቀጥላል።\n\n" +
+    "በዚህ ከተስማሙ OK ይጫኑ፤ ካልተስማሙ Cancel ይጫኑ።";
+
+  function showConfirmModal(message, onOk){
+    const modal = document.getElementById("confirmModal");
+    document.getElementById("confirmModalText").textContent = message;
+    const close = () => { modal.style.display = "none"; };
+    document.getElementById("confirmOkBtn").onclick = () => { close(); onOk(); };
+    document.getElementById("confirmCancelBtn").onclick = close;
+    modal.style.display = "flex";
+  }
+
+  function renderAutoPlayBtn(){
+    const btn = document.getElementById("autoPlayBtn");
+    if(!btn) return;
+    btn.classList.toggle("on", state.autoPlay);
+    btn.textContent = state.autoPlay ? "🕹 AUTO PLAY: ON · TAP TO STOP" : "🕹 AUTO PLAY";
+  }
+
+  function toggleAutoPlay(){
+    if(!REAL_MONEY_MODE || state.slotBusy) return;
+    Sound.click();
+    if(state.autoPlay){ setAutoPlay(false); return; }          // الإيقاف بلا تحذير
+    showConfirmModal(AUTOPLAY_WARNING, () => setAutoPlay(true)); // التشغيل يتطلب موافقة صريحة
+  }
+
+  async function setAutoPlay(enabled){
+    state.slotBusy++;
+    try{
+      const res = await apiPost("/api/autoplay", { enabled, count: Math.max(1, state.realGrids.length) });
+      state.autoPlay = !!res.auto_play;
+      if(res.balance !== undefined){
+        state.realBalance = res.balance;
+        document.getElementById("slotsBalance").textContent = state.realBalance;
+      }
+      (res.entries || []).forEach(en => state.realGrids.push({
+        id: en.id, grid: en.grid, is_winner:false, payout:0, slot_number: en.slot_number
+      }));
+      if(res.entries && res.entries.length) Sound.cartelaHit();
+      renderSlotsGridReal();
+      renderMyCartelasPreviewReal();
+      renderAutoPlayBtn();
+    }catch(e){
+      Sound.error();
+      const code = e.data && e.data.error;
+      if(code === "insufficient_balance") toast(`በቂ ቀሪ ሂሳብ የለዎትም። ቀሪ ሂሳብ፦ ${e.data.balance} ETB`);
+      else toast("ስህተት ተከስቷል። ዳግም ይሞክሩ።");
+    } finally { state.slotBusy--; }
   }
 
   function renderMyCartelasPreviewReal(){
@@ -1633,7 +1908,7 @@ window.App = (function(){
     const filled = state.realGrids.length;
     for(let i=0;i<CONFIG.MAX_CARTELAS;i++){
       if(i < filled){
-        row.innerHTML += `<div style="flex:1">${renderMiniCartela({ id:i+1, grid: state.realGrids[i].grid })}</div>`;
+        row.innerHTML += `<div style="flex:1">${renderMiniCartela({ id: state.realGrids[i].slot_number || (i+1), grid: state.realGrids[i].grid })}</div>`;
       } else {
         row.innerHTML += `<div class="cartela-slot-empty">SLOT #${i+1} EMPTY<br><small>ካርቴላ ለመግዛት ቁጥር ይጫኑ</small></div>`;
       }
@@ -1645,8 +1920,9 @@ window.App = (function(){
     state.realRoundId = roundId;
     matrixHits = new Set();
     state.lastCalledCountReal = 0;
-    myCartelaObjs = state.realGrids.map((g,i)=> ({ id: i+1, grid: g.grid }));
+    myCartelaObjs = state.realGrids.map((g,i)=> ({ id: g.slot_number || (i+1), grid: g.grid }));
     state.roundStartTime = performance.now();
+    state.roundEnded = false;
 
     document.getElementById("roundNum").textContent = "#" + roundId;
     document.getElementById("roundUser").textContent = TG_DISPLAY_NAME;
@@ -1695,11 +1971,7 @@ window.App = (function(){
           else mxCell.classList.add("hit");
         });
 
-        document.querySelectorAll(".bingo-cell").forEach(cell=>{
-          if(matrixHits.has(Number(cell.dataset.val)) && !cell.classList.contains("marked")){
-            cell.classList.add("marked");
-          }
-        });
+        refreshCartelaMarks(newBall);
 
         const col = COLUMNS.find(c => newBall >= COL_RANGES[c][0] && newBall <= COL_RANGES[c][1]);
         document.getElementById("drawnBall").textContent = newBall;
@@ -1709,13 +1981,7 @@ window.App = (function(){
         document.getElementById("drawnCol").textContent = `Column ${col} · #${newBall}`;
         document.getElementById("calledCount").textContent = called.length;
 
-        const strip = document.getElementById("historyStrip");
-        const prevBalls = called.slice(0,-1).slice(-6);
-        strip.innerHTML = prevBalls.map(n=>{
-          const c = COLUMNS.find(cc => n >= COL_RANGES[cc][0] && n <= COL_RANGES[cc][1]);
-          const st = COL_STYLES[c];
-          return `<div class="history-ball"><span class="hcol" style="background:${st.bg};color:${st.fg}">${c}</span><span class="hnum">${n}</span></div>`;
-        }).join("");
+        renderHistoryStrip(called);
 
         // نُصدر صوت الكرة الأخيرة فقط (مش كل الكرات التاريخية دفعة وحدة عند اللحاق بالركب)
         if(catchUpBalls.length === 1){
@@ -1726,45 +1992,59 @@ window.App = (function(){
 
       if(res.status === "finished"){
         clearInterval(state.ballTimerId);
-        endRoundReal(res.your_entries || [], called.length, res.round_winner_count || 0, res.round_total_payout || 0);
+        endRoundReal(res);
       }
     }catch(e){ /* فشل مؤقت بالشبكة أثناء الاستطلاع — سيعاد المحاولة تلقائيًا بعد ثانية */ }
   }
 
-  function endRoundReal(entries, ballsCalledCount, roundWinnerCount, roundTotalPayout){
-    const durationSec = Math.round((performance.now() - state.roundStartTime)/1000);
-    const wonEntries = entries.filter(e => e.is_winner);
+  // بلوك فائز واحد: اسم صاحب الكرتيلة + عدد خطوطه + ما ربحه + الكرتيلة بتنسيق الفوز
+  function winnerBlockHtml(w){
+    const nm = w.is_mine ? "YOU 🎉" : "@" + escapeHtml(w.username);
+    const tag = w.lines >= 2 ? `${w.lines} LINES` : "1 LINE";
+    const cartela = renderWinningCartela({ id: w.slot_number || "-", grid: w.grid }, null);
+    return `<div class="winner-block${w.is_mine ? " mine" : ""}">
+      <div class="wb-head"><span class="wb-name">🏅 ${nm}</span><span class="wb-tag">${tag}</span><span class="wb-pay">${w.payout} ETB</span></div>
+      ${cartela}
+    </div>`;
+  }
 
-    if(wonEntries.length > 0){
-      // 🏆 أنت فزت فعليًا في هذه الجولة
-      const playedRealBingo = Sound.playBingoWord();
-      if(!playedRealBingo) Sound.winFanfare();
-      const totalPayout = wonEntries.reduce((s,e)=>s+e.payout,0);
+  function endRoundReal(res){
+    if(state.roundEnded) return;       // حماية من تنفيذ النهاية مرتين لو تداخل استطلاعان
+    state.roundEnded = true;
+
+    const entries = res.your_entries || [];
+    const called = res.called_balls || [];
+    matrixHits = new Set(called);      // نضمن أن تلوين الخطوط يعتمد على كل الكرات المسحوبة فعلاً
+    const winners = res.round_winners || [];
+    const mine = winners.filter(w => w.is_mine);
+    const myTotal = mine.reduce((s,w) => s + w.payout, 0);
+    const durationSec = Math.round((performance.now() - state.roundStartTime)/1000);
+    const ballsCalledCount = called.length;
+
+    if(winners.length > 0){
       document.getElementById("trophyIcon").textContent = "🏆";
       document.getElementById("champTitle").textContent = "ROYAL CHAMPION DECLARED";
-      document.getElementById("champSub").textContent = "TOTAL DERASH PRIZE POOL";
       document.getElementById("winnerDetails").style.display = "";
-      document.getElementById("winPool").textContent = totalPayout + " ETB";
-      document.getElementById("winnerPayout").textContent = totalPayout + " ETB";
-      document.getElementById("winnerName").textContent = "YOU 🎉";
-      document.getElementById("statLines").textContent = String(wonEntries.length);
-      document.getElementById("winningCartelaSlot").innerHTML = renderWinningCartela({ id:1, grid: wonEntries[0].grid }, null);
-      launchConfetti();
-    } else if(roundWinnerCount > 0){
-      // 🔧 فاز شخص آخر (أو أكثر) في نفس الجولة — أنت لم تفز أو كنت تتفرّج فقط،
-      // لكن الجولة لها فائز حقيقي فعلاً، فلا نعرض "NO WINNER" بشكل خاطئ
-      Sound.roundEndNoWinner();
-      document.getElementById("trophyIcon").textContent = "🏆";
-      document.getElementById("champTitle").textContent = "ROYAL CHAMPION DECLARED";
-      document.getElementById("champSub").textContent = entries.length ? "YOU DIDN'T WIN THIS ROUND" : "ANOTHER PLAYER WON THIS ROUND";
-      document.getElementById("winnerDetails").style.display = "";
-      document.getElementById("winPool").textContent = roundTotalPayout + " ETB";
-      document.getElementById("winnerPayout").textContent = roundTotalPayout + " ETB";
-      document.getElementById("winnerName").textContent = roundWinnerCount > 1 ? `${roundWinnerCount} PLAYERS 🏅` : "ANOTHER PLAYER 🏅";
-      document.getElementById("statLines").textContent = String(roundWinnerCount);
-      document.getElementById("winningCartelaSlot").innerHTML = "";
+      document.getElementById("winPool").textContent = res.prize_pool + " ETB";
+      // كل الكرتيلات الفائزة (وليس الأولى فقط) بأسماء أصحابها لكل اللاعبين
+      document.getElementById("winningCartelaSlot").innerHTML = winners.map(winnerBlockHtml).join("");
+      document.getElementById("statLines").textContent = String(Math.max(...winners.map(w => w.lines)));
+
+      if(mine.length > 0){
+        const playedRealBingo = Sound.playBingoWord();
+        if(!playedRealBingo) Sound.winFanfare();
+        document.getElementById("champSub").textContent = "TOTAL DERASH PRIZE POOL";
+        document.getElementById("winnerLine").innerHTML =
+          `🏅 YOU 🎉 · PAYOUT <b style="color:var(--gold-light)">${myTotal} ETB</b>`;
+        launchConfetti();
+      } else {
+        Sound.roundEndNoWinner();
+        document.getElementById("champSub").textContent = entries.length ? "YOU DIDN'T WIN THIS ROUND" : "WINNERS DECLARED";
+        const names = [...new Set(winners.map(w => "@" + escapeHtml(w.username)))].join(" · ");
+        document.getElementById("winnerLine").innerHTML = `🏅 ${names}`;
+      }
     } else {
-      // لا يوجد فائز إطلاقًا في كل الجولة (نادر جدًا — فقط لو لم يشترِ أحد كرتيلة)
+      // لا يوجد فائز إطلاقًا (نادر جدًا — فقط لو لم يشترِ أحد كرتيلة)
       Sound.roundEndNoWinner();
       document.getElementById("trophyIcon").textContent = "🎲";
       document.getElementById("champTitle").textContent = "ROUND ENDED";
@@ -1977,7 +2257,7 @@ window.App = (function(){
   return {
     enterGame, autoAssign, clearSlots,
     openWallet, backToIntro, backToWallet, openDeposit, openWithdraw,
-    submitDeposit, submitWithdraw, requestPhoneShare
+    submitDeposit, submitWithdraw, requestPhoneShare, toggleAutoPlay
   };
 })();
 
