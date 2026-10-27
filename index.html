@@ -94,6 +94,8 @@
     font-size:12px; color:var(--text-dim);
   }
   .topbar b{ color:var(--gold-light); font-size:13px; }
+  .topbar > div:first-child{ min-width:0; flex:1 1 0; overflow:hidden; }
+  #slotsRoundLabel{ display:block; white-space:nowrap; overflow:hidden; }
   .pill{
     background:var(--bg-2); border:1px solid var(--maroon);
     border-radius:20px; padding:4px 10px; font-size:11px;
@@ -318,25 +320,33 @@
   }
 
   /* ---------- شاشة الجولة ---------- */
-  .top-card{ display:flex; align-items:center; justify-content:space-between; gap:4px; flex-wrap:wrap;
+  /* الشريط العلوي ثابت: صف واحد لا يلتف أبدًا. الجزء المرن الوحيد هو منطقة الاسم (تُقطع بنقاط)،
+     أما المربعات والأيقونات فبعرض ثابت، والأرقام الكبيرة تصغّر خطها تلقائيًا (fitText) بدل أن تمدّد الشريط */
+  .top-card{ display:flex; align-items:center; justify-content:space-between; gap:4px; flex-wrap:nowrap;
     background:var(--bg-1); border:1px solid var(--maroon); border-radius:12px; padding:6px 8px; margin-bottom:10px; }
-  .round-header-left{ display:flex; align-items:center; gap:6px; }
-  .top-stats{ display:flex; gap:5px; }
-  .stat-mini{ text-align:center; background:var(--bg-2); border:1px solid var(--maroon); border-radius:5px; padding:3px 7px; min-width:44px; }
+  .round-header-left{ display:flex; align-items:center; gap:5px; flex:1 1 0; min-width:0; }
+  .round-header-left > div:last-child{ min-width:0; overflow:hidden; }
+  .top-stats{ display:flex; gap:4px; flex:0 0 auto; }
+  .stat-mini{ text-align:center; background:var(--bg-2); border:1px solid var(--maroon); border-radius:5px;
+    padding:3px 2px; width:clamp(42px,12.4vw,54px); min-width:0; overflow:hidden; flex:0 0 auto; }
+  .stat-mini.stat-called{ width:clamp(34px,9.6vw,40px); }
   .stat-mini span{ display:block; font-size:6px; color:var(--text-muted); letter-spacing:.3px; white-space:nowrap; }
-  .stat-mini b{ font-size:11px; color:var(--text); white-space:nowrap; }
+  .stat-mini b{ display:block; font-size:11px; color:var(--text); white-space:nowrap; overflow:hidden; }
   .stat-mini.gold{ border-color:var(--gold-dark); }
   .stat-mini.gold b{ color:var(--gold-light); }
-  .round-header-icons{ display:flex; gap:4px; }
+  .round-header-icons{ display:flex; gap:3px; flex:0 0 auto; }
+  .round-header-icons .icon-btn{ width:23px; height:23px; font-size:10px; }
 
   .section-card{ background:var(--bg-1); border:1px solid var(--maroon); border-radius:12px; padding:8px; }
   .round-logo{ width:28px;height:28px;border-radius:50%;flex-shrink:0;
     background:linear-gradient(180deg,#ff3b4e,#a30f1f); box-shadow:0 0 6px rgba(255,60,80,.45);
     display:flex;align-items:center;justify-content:center;font-size:13px; }
   .round-title{ font-size:11px; font-weight:800; color:var(--gold-light); white-space:nowrap; }
-  .round-num{ font-size:8px; color:var(--text-muted); font-weight:500; }
-  .round-user{ font-size:8.5px; color:var(--text-muted); display:flex; align-items:center; gap:3px; white-space:nowrap; }
-  .dot-online{ width:5px;height:5px;border-radius:50%;background:var(--ok); display:inline-block; }
+  /* خانة رقم الجولة بعرض ثابت: كلما زاد الرقم صغر خطه ولا يتمدد الشريط */
+  .round-num{ display:inline-block; width:19px; vertical-align:bottom; overflow:hidden; white-space:nowrap; text-align:left; font-size:8px; color:var(--text-muted); font-weight:500; }
+  .round-user{ font-size:8.5px; color:var(--text-muted); display:flex; align-items:center; gap:3px; white-space:nowrap; min-width:0; }
+  #roundUser{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .dot-online{ width:5px;height:5px;border-radius:50%;background:var(--ok); display:inline-block; flex-shrink:0; }
   .icon-btn{ width:26px;height:26px;border-radius:50%;border:1px solid var(--maroon);
     background:var(--bg-2); color:var(--text); display:flex;align-items:center;justify-content:center;
     font-size:11px; cursor:pointer; flex-shrink:0; }
@@ -653,12 +663,12 @@
       <div class="round-header-left">
         <div class="round-logo">👑</div>
         <div>
-          <div class="round-title">ROYAL BINGO <span class="round-num" id="roundNum">#1</span></div>
+          <div class="round-title" id="roundTitle">ROYAL BINGO <span class="round-num" id="roundNum">#1</span></div>
           <div class="round-user"><span class="dot-online"></span> @<span id="roundUser">PLAYER</span></div>
         </div>
       </div>
       <div class="top-stats">
-        <div class="stat-mini"><span>CALLED</span><b><span id="calledCount">0</span>/75</b></div>
+        <div class="stat-mini stat-called"><span>CALLED</span><b><span id="calledCount">0</span>/75</b></div>
         <div class="stat-mini" id="roundBalanceBox" style="display:none;"><span>BALANCE</span><b id="roundBalance">0</b></div>
         <div class="stat-mini gold"><span>PRIZE POOL</span><b id="roundPool">704</b></div>
       </div>
@@ -1140,7 +1150,31 @@ window.App = (function(){
   function showScreen(id){
     document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
     document.getElementById(id).classList.add("active");
+    requestAnimationFrame(fitAllText);   // العناصر المخفية لا يمكن قياسها، فنعيد الضبط عند إظهار الشاشة
   }
+
+  // يصغّر خط عنصر (بنصف بكسل) حتى يتسع داخل عرضه الثابت — لا يمدد الشريط العلوي أبدًا
+  function fitText(el, maxPx, minPx){
+    if(!el) return;
+    el.style.fontSize = maxPx + "px";
+    if(el.clientWidth === 0) return;     // مخفي حاليًا
+    let size = maxPx;
+    while(el.scrollWidth > el.clientWidth + 0.5 && size > minPx){
+      size -= 0.5;
+      el.style.fontSize = size + "px";
+    }
+  }
+  const FIT_TARGETS = [
+    ["roundTitle", 11, 7.5], ["roundNum", 8, 4.5], ["roundBalance", 11, 5.5], ["roundPool", 11, 5.5],
+    ["slotsBalance", 11, 5.5], ["slotsPrizePool", 11, 5.5], ["slotsRoundLabel", 13, 7.5]
+  ];
+  function fitAllText(){ FIT_TARGETS.forEach(([id,mx,mn]) => fitText(document.getElementById(id), mx, mn)); }
+  FIT_TARGETS.forEach(([id,mx,mn]) => {
+    const el = document.getElementById(id);
+    if(el) new MutationObserver(() => fitText(el, mx, mn)).observe(el, {childList:true, characterData:true, subtree:true});
+  });
+  window.addEventListener("resize", fitAllText);
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(fitAllText);
 
   function fmtTime(sec){
     const m = Math.floor(sec/60), s = sec%60;
